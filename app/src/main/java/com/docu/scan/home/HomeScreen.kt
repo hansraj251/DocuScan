@@ -4,20 +4,22 @@ import android.app.Activity
 import android.widget.Toast
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -336,6 +338,9 @@ private fun DocumentCard(
     onRename: () -> Unit,
     onDelete: () -> Unit
 ) {
+    var menuExpanded by remember {
+        mutableStateOf(false)
+    }
     Card(
         modifier = Modifier.fillMaxWidth(),
         onClick = onClick
@@ -345,42 +350,71 @@ private fun DocumentCard(
             modifier = Modifier.padding(16.dp)
         ) {
 
-            Text(
-                text = document.title,
-                style = MaterialTheme.typography.titleMedium
-            )
+            androidx.compose.foundation.layout.Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
 
-            Spacer(
-                modifier = Modifier.height(4.dp)
-            )
-
-            Text(
-                text =
-                    "${document.pageCount} page(s) • " +
-                        formatDate(document.createdAt),
-                style = MaterialTheme.typography.bodyMedium
-            )
-
-            Spacer(
-                modifier = Modifier.height(12.dp)
-            )
-
-            Row {
-
-                OutlinedButton(
-                    onClick = onRename
+                Column(
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Text("RENAME")
+
+                    Text(
+                        text = document.title,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+
+                    Spacer(
+                        modifier = Modifier.height(4.dp)
+                    )
+
+                    Text(
+                        text =
+                            "${document.pageCount} page(s) • " +
+                                formatDate(document.createdAt),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
 
-                Spacer(
-                    modifier = Modifier.width(8.dp)
-                )
+                Box {
+                    IconButton(
+                        onClick = {
+                            menuExpanded = true
+                        }
+                    ) {
+                        Text(
+                            text = "⋮",
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                    }
 
-                OutlinedButton(
-                    onClick = onDelete
-                ) {
-                    Text("DELETE")
+                    DropdownMenu(
+                        expanded = menuExpanded,
+                        onDismissRequest = {
+                            menuExpanded = false
+                        }
+                    ) {
+
+                        DropdownMenuItem(
+                            text = {
+                                Text("Rename")
+                            },
+                            onClick = {
+                                menuExpanded = false
+                                onRename()
+                            }
+                        )
+
+                        DropdownMenuItem(
+                            text = {
+                                Text("Delete")
+                            },
+                            onClick = {
+                                menuExpanded = false
+                                onDelete()
+                            }
+                        )
+                    }
                 }
             }
         }
