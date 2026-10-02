@@ -1,5 +1,8 @@
 package com.docu.scan.home
 
+import android.app.Activity
+import android.widget.Toast
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,8 +33,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.docu.scan.library.ScanDocument
+import com.docu.scan.scanner.rememberDocumentScannerController
+import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -40,9 +46,65 @@ import java.util.Locale
 @Composable
 fun HomeScreen(
     viewModel: ScanViewModel,
-    onScan: () -> Unit,
     onDocumentClick: (ScanDocument) -> Unit
 ) {
+    val context = LocalContext.current
+    val activity = context as? Activity
+
+    val scannerController =
+        rememberDocumentScannerController(
+            onResult = { result ->
+                val pdf = result.getPdf()
+                val pdfUri = pdf?.getUri()
+
+                val pageCount =
+                    ScanViewModel.resolvePageCount(
+                        pdfPageCount = pdf?.getPageCount(),
+                        pageListCount = result.getPages()?.size
+                    )
+
+                if (pdfUri == null) {
+                    Toast.makeText(
+                        context,
+                        "No PDF returned by scanner",
+                        Toast.LENGTH_LONG
+                    ).show()
+                } else {
+                    viewModel.saveScan(
+                        sourceUri = pdfUri,
+                        pageCount = pageCount
+                    )
+
+                    Toast.makeText(
+                        context,
+                        "Document saved",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            },
+            onError = { exception ->
+                Toast.makeText(
+                    context,
+                    "Scanner error: ${exception.message}",
+                    Toast.LENGTH_LONG
+                ).show()
+
+                exception.printStackTrace()
+            }
+        )
+
+    val scanner = scannerController.first
+    val scannerLauncher = scannerController.second
+
+    fun startScan() {
+        if (activity != null) {
+            scanner.start(
+                activity,
+                scannerLauncher
+            )
+        }
+    }
+
     val documents by
         viewModel.documents.collectAsStateWithLifecycle()
 
@@ -124,7 +186,7 @@ fun HomeScreen(
                     )
 
                     Button(
-                        onClick = onScan
+                        onClick = ::startScan
                     ) {
                         Text("SCAN DOCUMENT")
                     }
@@ -164,7 +226,7 @@ fun HomeScreen(
 
                 Button(
                     modifier = Modifier.fillMaxWidth(),
-                    onClick = onScan
+                    onClick = ::startScan
                 ) {
                     Text("SCAN NEW DOCUMENT")
                 }

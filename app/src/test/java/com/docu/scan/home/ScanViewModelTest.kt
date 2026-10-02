@@ -57,4 +57,27 @@ class ScanViewModelTest {
             )
         )
     }
+    @Test
+    fun resolvePageCount_prefersPdfCount() {
+        assertEquals(
+            5,
+            ScanViewModel.resolvePageCount(
+                pdfPageCount = 5,
+                pageListCount = 3
+            )
+        )
+    }
+
+    @Test
+    fun resolvePageCount_fallsBackToPageList() {
+        assertEquals(
+            3,
+            ScanViewModel.resolvePageCount(
+                pdfPageCount = null,
+                pageListCount = 3
+            )
+        )
+    }
+
 }
+

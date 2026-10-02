@@ -44,7 +44,28 @@ class ScanViewModel(
         }
     }
 
+    fun saveScan(
+        sourceUri: android.net.Uri,
+        pageCount: Int
+    ) {
+        viewModelScope.launch {
+            repository.saveScan(
+                sourceUri = sourceUri,
+                pageCount = pageCount
+            )
+        }
+    }
+
     companion object {
+
+        fun resolvePageCount(
+            pdfPageCount: Int?,
+            pageListCount: Int?
+        ): Int {
+            return pdfPageCount
+                ?: pageListCount
+                ?: 0
+        }
 
         fun sortDocuments(
             documents: List<ScanDocument>
